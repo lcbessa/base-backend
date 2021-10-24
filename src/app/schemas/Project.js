@@ -1,0 +1,34 @@
+import mongoose from "../../database";
+
+const ProjectSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    slug: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    category: {
+        type: String,
+        required: true
+
+    },
+    // images: [
+    //     {
+    //         type: String,
+    //         required: true
+    //     }
+    // ]
+    createAt: {
+        type: Date,
+        default: Date.now
+    },
+});
+
+export default mongoose.model('Project',ProjectSchema);
