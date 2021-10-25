@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Project from '../schemas/Project';
+import Slugify from '../../utils/Slugify';
 
 const router = new Router();
 
@@ -77,11 +78,32 @@ router.post('/',(req,res) => {
         });
     })
 });
-router.put('/',(req,res) => {
-
+router.put('/:projectId',(req,res) => {
+    const {title, description, category} = req.body;
+    let slug = undefined;
+    if (title) {
+        slug = Slugify(title);
+    }
+    Project.findByIdAndUpdate(req.params.projectId, {title, slug, description, category}, {new: true}).then(project => {
+        res.status(200).send(project);
+    })
+    .catch(error => {
+        console.error('Erro ao atualizar novo projeto no banco de dados',error);
+        res
+        .status(400)
+        .send({
+            error: 'Não foi possível atualizar seu projeto. Verifique os dados e tente novamente'
+        });
+    })
 });
-router.delete('/',(req,res) => {
-
+router.delete('/:projectId',(req,res) => {
+    Project.findByIdAndRemove(req.params.projectId).then(() => {
+        res.send({message: 'Projeto removido com sucesso!'});
+    })
+    .catch(error => {
+        console.error('Erro ao remover projeto do banco de dados',error);
+        res.status(400).send({message: 'Erro ao remover o projeto, tente novamente'});
+    });
 });
  
 export default router; // exportando pra conseguir usar em outro lugar
