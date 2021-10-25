@@ -1,4 +1,5 @@
-import mongoose from "../../database";
+import mongoose from '../../database';
+import Slugify from '../../utils/Slugify';
 
 const ProjectSchema = new mongoose.Schema({
     title: {
@@ -8,7 +9,7 @@ const ProjectSchema = new mongoose.Schema({
     },
     slug: {
         type: String,
-        required: true
+        unique: true,
     },
     description: {
         type: String,
@@ -31,4 +32,9 @@ const ProjectSchema = new mongoose.Schema({
     },
 });
 
+ProjectSchema.pre('save', function(next) {
+    const title = this.title;
+    this.slug = Slugify(title);
+    next();
+})
 export default mongoose.model('Project',ProjectSchema);
