@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import Project from '../schemas/Project';
 import Slugify from '../../utils/Slugify';
+import AuthMiddleware from '../middlewares/Auth';
 
 const router = new Router();
 
@@ -60,7 +61,7 @@ router.get('/teste', (req, res) => {
     });
 });
 
-router.post('/', (req, res) => {
+router.post('/', AuthMiddleware, (req, res) => {
   const { title, slug, description, category } = req.body;
   Project.create({ title, slug, description, category })
     .then((project) => {
@@ -74,7 +75,7 @@ router.post('/', (req, res) => {
       });
     });
 });
-router.put('/:projectId', (req, res) => {
+router.put('/:projectId', AuthMiddleware, (req, res) => {
   const { title, description, category } = req.body;
   let slug = undefined;
   if (title) {
@@ -96,7 +97,7 @@ router.put('/:projectId', (req, res) => {
       });
     });
 });
-router.delete('/:projectId', (req, res) => {
+router.delete('/:projectId', AuthMiddleware, (req, res) => {
   Project.findByIdAndRemove(req.params.projectId)
     .then(() => {
       res.send({ message: 'Projeto removido com sucesso!' });
