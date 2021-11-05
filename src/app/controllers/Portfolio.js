@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Project from '../schemas/Project';
 import Slugify from '../../utils/Slugify';
 import AuthMiddleware from '../middlewares/Auth';
+import Multer from '../middlewares/Multer';
 
 const router = new Router();
 
@@ -9,7 +10,12 @@ router.get('/', (req, res) => {
   Project.find()
     .then((data) => {
       const projects = data.map((project) => {
-        return { title: project.title, category: project.category };
+        return {
+          title: project.title,
+          category: project.category,
+          slug: project.slug,
+          featuredImage: project.featuredImage,
+        };
       });
       res.send(projects);
     })
@@ -110,4 +116,57 @@ router.delete('/:projectId', AuthMiddleware, (req, res) => {
     });
 });
 
+router.post(
+  '/featured-image/:projectId',
+  [AuthMiddleware, Multer.single('featuredImage')],
+  (req, res) => {
+    const { file } = req;
+    if (file) {
+      Project.findByIdAndUpdate(
+        req.params.projectId,
+        {
+          $set: {
+            featuredImage: file.path,
+          },
+        },
+        { new: true },
+      )
+        .then((project) => {
+          return res.send({ project });
+        })
+        .catch((error) => {
+          console.error('Erro ao associar imagem ao projeto', error);
+          res.status(500).send({ error: 'Ocorreu um erro, tente novamente!' });
+        });
+    } else {
+      return res.status(400).send({ error: 'Nenhuma imagem enviada' });
+    }
+  },
+);
+router.post('/images/:projectId', Multer.array('images'), (req, res) => {
+  const { files } = req;
+
+  if (files && files.length > 0) {
+    const images = [];
+    files.forEach((file) => {
+      images.push(file.path);
+    });
+    Project.findByIdAndUpdate(
+      req.params.projectId,
+      {
+        $set: { images },
+      },
+      { new: true },
+    )
+      .then((project) => {
+        return res.send({ project });
+      })
+      .catch((error) => {
+        console.error('Erro ao associar imagens ao projeto', error);
+        res.status(500).send({ error: 'Ocorreu um erro, tente novamente!' });
+      });
+  } else {
+    return res.status(400).send({ error: 'Nenhuma imagem enviada' });
+  }
+});
 export default router; // exportando pra conseguir usar em outro lugar
